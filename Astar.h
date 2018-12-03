@@ -5,10 +5,11 @@ using std::vector;
 #include <set>
 using std::set;
 #include "AStarNode.h"
+#include "Player.h"
 
 #define indexShift (int)(floor(BZDBCache::worldSize / (2 * SCALE) + 1.5f))
 #define closedArraySize (2 * (int)(floor(BZDBCache::worldSize / (2 * SCALE) + 1.5f)) + 1)
-#define closedArrayFixedSize 200
+#define closedArrayFixedSize 190
 
 // define pless function as a binary operator that takes pointers
 // to any type and returns the comparison of the objects pointed to
@@ -27,8 +28,8 @@ struct pless : public std::binary_function<Type *, Type *, bool> {
 class AStarGraph {
 public:
 	AStarGraph::AStarGraph() {}
-	AStarGraph::AStarGraph(const float startPos[3], const float goalPos[3]);
-	static void		aStarSearch(const float startPos[3], const float goalPos[3], vector< AStarNode > & path);
+	AStarGraph::AStarGraph(const float startPos[3], const float goalPos[3], Player* thisPlayer);
+	static void		aStarSearch(const float startPos[3], const float goalPos[3], vector< AStarNode > & path, Player* thisPlayer);
 	inline AStarNode *		getRecord(AStarNode n) {
 		return &closedArray[n.getX() + indexShift][n.getY() + indexShift];
 	}
@@ -43,8 +44,10 @@ private:
         static bool closedArrayInitP;
 	static AStarNode closedArray[closedArrayFixedSize][closedArrayFixedSize];
 	set<AStarNode *, pless<AStarNode> > openQueue;
-	void					startAStar(vector< AStarNode > & path);
-	vector<AStarNode *>		getSuccessors(AStarNode * node);
+        Player* thisTank;
+
+	void			startAStar(vector< AStarNode > & path);
+	vector<AStarNode *>	getSuccessors(AStarNode * node);
 	inline void AStarGraph::addToQueue(AStarNode * neighborNode, AStarNode * currentNode, double incrementalCost) {
 		neighborNode->setStatus(open);
 		neighborNode->setCostSoFar(currentNode->getCostSoFar() + incrementalCost);

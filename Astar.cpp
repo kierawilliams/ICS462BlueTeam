@@ -1,6 +1,7 @@
 #include "Astar.h"
 #include "BZDBCache.h" // needed for worldSize
 #include "playing.h" // needed for controlPanel
+#include "RobotPlayer.h" // needed for costVector
 
 //#define TRACE_ASTAR
 
@@ -8,7 +9,7 @@ bool AStarGraph::closedArrayInitP = false;
 AStarNode AStarGraph::closedArray[closedArrayFixedSize][closedArrayFixedSize];
 
 // Initialize A* Search graph with starting position startPos and goal position goalPos (bzflag locations)
-AStarGraph::AStarGraph(const float startPos[3], const float goalPos[3])
+AStarGraph::AStarGraph(const float startPos[3], const float goalPos[3], Player* thisPlayer)
 {
   if (closedArraySize > closedArrayFixedSize) {
     char buffer[128];
@@ -27,6 +28,7 @@ AStarGraph::AStarGraph(const float startPos[3], const float goalPos[3])
     }
     closedArrayInitP = true;
   }
+  thisTank = thisPlayer;
 
   for (int i = 0; i < closedArrayFixedSize; ++i) {
     for (int j = 0; j < closedArrayFixedSize; ++j) {
@@ -46,9 +48,9 @@ AStarGraph::AStarGraph(const float startPos[3], const float goalPos[3])
 
 // return a path (a vector of AStarNode with the goal node first [0] and the start node last [path->size() - 1])
 // that is the result of running A* search from startPos to goalPos (bzflag locations)
-void		AStarGraph::aStarSearch(const float startPos[3], const float goalPos[3], vector< AStarNode > & path)
+void		AStarGraph::aStarSearch(const float startPos[3], const float goalPos[3], vector< AStarNode > & path, Player* thisPlayer)
 {
-	AStarGraph myAStarGraph(startPos, goalPos);
+	AStarGraph myAStarGraph(startPos, goalPos, thisPlayer);
 	if (!path.empty()) path.clear();
 	myAStarGraph.startAStar(path);
 	if (path.empty()) {
@@ -73,7 +75,8 @@ void		AStarGraph::aStarSearch(const float startPos[3], const float goalPos[3], v
 // helper function for above that runs the actual loop of A* search
 void		AStarGraph::startAStar(vector< AStarNode > & path)
 {
-	const double distanceArray[8] = { M_SQRT2, 1, M_SQRT2, 1, 1, M_SQRT2, 1, M_SQRT2 };
+	//const double distanceArray[8] = { M_SQRT2, 1, M_SQRT2, 1, 1, M_SQRT2, 1, M_SQRT2 };
+        std::vector<double>* costs = ((RobotPlayer *)thisTank)->costVector(startNode->getX(), startNode->getY());
 	startNode->setCostSoFar(0.0f);
 	startNode->setStatus(open);
 	startNode->setTotalCost(startNode->getHeuristic(goalNode));
@@ -84,7 +87,7 @@ void		AStarGraph::startAStar(vector< AStarNode > & path)
 		openQueue.erase(currentNode);
 		int neighborcount = 0;
 		for (auto &neighborNode : getSuccessors(currentNode)) {
-			double incrementalCost = distanceArray[neighborcount++];
+			double incrementalCost = (*costs)[neighborcount++];
 			bool accessible = neighborNode->isAccessible();
 			if (!accessible) continue; // skip if not accessible
 			// uncomment out the next 4 lines to return as soon as a goal node is seen

@@ -20,6 +20,7 @@
 //#define TRACE3
 #define TRACE_PLANNER
 #define TRACE_DECTREE
+#define DANGER 1
 /* end of lines added by David Chin */
 
 // interface header
@@ -651,7 +652,7 @@ void			RobotPlayer::setTarget(const Player* _target)
   //float start[3] = { 12.96f, -30.24, 0.0f };
   //float goal[3] = { 0.0f, -190.08, 0.0f };
   //AStarGraph::aStarSearch(start, goal, paths);
-  AStarGraph::aStarSearch(getPosition(), goalPos, paths);
+  AStarGraph::aStarSearch(getPosition(), goalPos, paths, this);
   clock_t stop_s = clock();
   float sum = (float)(stop_s - start_s) / CLOCKS_PER_SEC;
   char buffer[128];
@@ -1128,6 +1129,38 @@ Player*		RobotPlayer::lookupLocalPlayer(PlayerId id)
 		if (p && p->getId() == id) return p;
 	}
 	return NULL;
+}
+
+std::vector<double>* RobotPlayer::costVector(int x, int y)
+{
+  std::vector<double>* costVector = new std::vector<double>();
+  float newCost = 0.0;
+  const float nodepos[2] = { x * SCALE, y * SCALE };
+  TeamColor myTeam = getTeam();
+  for (int i = 0; i <= World::getWorld()->getCurMaxPlayers(); i++)
+  {
+    Player* p = NULL;
+    const float* pos; // position of p
+    double distance = 0; // distance from p to this node
+    if (i < World::getWorld()->getCurMaxPlayers())
+      p = World::getWorld()->getPlayer(i);
+    else
+      p = LocalPlayer::getMyTank();
+    if (p && p->getTeam() != myTeam) {
+      pos = p->getPosition();
+      double deltax = pos[0] - nodepos[0];
+      double deltay = pos[1] - nodepos[1];
+      distance = hypotf(deltax, deltay);
+      if (distance < BZDB.eval(StateDatabase::BZDB_SHOTRANGE))
+        newCost += DANGER;
+    }
+  }
+  double SQRT2 = sqrt(2.0);
+  costVector->push_back(SQRT2 + newCost); costVector->push_back(1.0 + newCost);
+  costVector->push_back(SQRT2 + newCost); costVector->push_back(1.0 + newCost);
+  costVector->push_back(1.0 + newCost); costVector->push_back(SQRT2 + newCost);
+  costVector->push_back(1.0 + newCost); costVector->push_back(SQRT2 + newCost);
+  return costVector;
 }
 /* end of lines added by David Chin */
 

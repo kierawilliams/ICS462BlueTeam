@@ -10,6 +10,7 @@
  * software licence.
  */
 #include <exception>
+#include "playing.h" // needed for controlPanel
 #include "dectree.h"
 #define TRACE_DECTREE
 

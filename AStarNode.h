@@ -45,15 +45,15 @@ public:
 	inline void AStarNode::setTotalCost(double newTotalCost) { totalCost = newTotalCost; }
 	inline AStarStatus AStarNode::getStatus(void) const { return status; }
 	inline void AStarNode::setStatus(AStarStatus newStatus) { status = newStatus; }
-        inline AStarAccessible AStarNode::getAccessibleP(void) const { return accessibleP; }
-        inline void AStarNode::setAccessibleP(AStarAccessible newAccessibleP) { accessibleP = newAccessibleP; }
+    inline AStarAccessible AStarNode::getAccessibleP(void) const { return accessibleP; }
+    inline void AStarNode::setAccessibleP(AStarAccessible newAccessibleP) { accessibleP = newAccessibleP; }
 private:
 	int x, y;
 	int prevX, prevY;
 	double costSoFar;
 	double totalCost;
 	AStarStatus status;
-        AStarAccessible accessibleP;
+    AStarAccessible accessibleP;
 };
 
 

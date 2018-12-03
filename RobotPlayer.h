@@ -48,6 +48,29 @@ class RobotPlayer : public LocalPlayer {
 
     void		restart(const float* pos, float azimuth);
     void		explodeTank();
+/* lines added by David Chin */
+	static void		init(void);
+	bool		RobotPlayer::amAlive(float dt);
+	bool		RobotPlayer::shotComing(float dt);
+	void		RobotPlayer::doNothing(float dt);
+	void		RobotPlayer::evade(float dt);
+	void		RobotPlayer::followPath(float dt);
+
+	bool		RobotPlayer::isFiringStatusReady(float dt);
+	bool		RobotPlayer::hasShotTimerElapsed(float dt);
+	bool		RobotPlayer::isShotCloseToTarget(float dt);
+	bool		RobotPlayer::isBuildingInWay(float dt);
+	bool		RobotPlayer::isTeammateInWay(float dt);
+	void		RobotPlayer::setShortShotTimer(float dt);
+	void		RobotPlayer::shootAndResetShotTimer(float dt);
+
+	bool		RobotPlayer::isHoldingFlag(float dt);
+	bool		RobotPlayer::isFlagSticky(float dt);
+	bool		RobotPlayer::isTeamFlag(float dt);
+	bool		RobotPlayer::isMyTeamFlag(float dt);
+	void		RobotPlayer::dropFlag(float dt);
+        std::vector<double>* RobotPlayer::costVector(int x, int y);
+/* end of lines added by David Chin */
 
   private:
     void		doUpdate(float dt);
@@ -71,7 +94,7 @@ class RobotPlayer : public LocalPlayer {
      int		computeRepulsion(float neighborhoodSize, float repulseOut[3]);
      int		computeAlign(float neighborhoodSize, float avVOut[3], float* avAzimuthOut);
      float 		computeWander(void);
-     Player* 		lookupLocalPlayer(PlayerId id);
+     Player* 	lookupLocalPlayer(PlayerId id);
 
      static const float		CohesionW;
      static const float		SeparationW;
