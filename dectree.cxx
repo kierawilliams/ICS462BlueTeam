@@ -134,7 +134,9 @@ namespace aicore
 		doUpdateDropFlagDecisions[3].falseBranch = &doUpdateDropFlagActions[1];
 		
 		doUpdateDropFlagDecisions[4].decFuncPtr = &RobotPlayer::isMyTeamFlag;
-		doUpdateDropFlagDecisions[4].trueBranch = &doUpdateDropFlagActions[1];
+                // we want the flag tdorn
+		doUpdateDropFlagDecisions[4].trueBranch = &doUpdateDropFlagActions[0];
+                // end
 		doUpdateDropFlagDecisions[4].falseBranch = &doUpdateDropFlagActions[0];
 
 		doUpdateDropFlagActions[0].actFuncPtr = &RobotPlayer::doNothing;

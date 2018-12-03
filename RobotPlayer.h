@@ -71,7 +71,10 @@ class RobotPlayer : public LocalPlayer {
 	void		RobotPlayer::dropFlag(float dt);
         std::vector<double>* RobotPlayer::costVector(int x, int y);
 /* end of lines added by David Chin */
-
+        //tdorn
+        bool		RobotPlayer::myTeamHoldingOwnFlag(void);
+        void		RobotPlayer::findMyFlag(float location[3]);
+        //end
   private:
     void		doUpdate(float dt);
     void		doUpdateMotion(float dt);

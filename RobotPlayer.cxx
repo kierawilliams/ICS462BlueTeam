@@ -54,6 +54,9 @@ TimeKeeper RobotPlayer::tick = TimeKeeper::getTick();
 float RobotPlayer::wanderAzimuth = 0.0f;
 /* end of lines added by David Chin */
 
+//tdorn lines
+
+
 RobotPlayer::RobotPlayer(const PlayerId& _id, const char* _name,
 				ServerLink* _server,
 				const char* _motto = "") :
@@ -640,10 +643,21 @@ void			RobotPlayer::setTarget(const Player* _target)
 
   TeamColor myteam = getTeam();
   float goalPos[3];
-  if (myTeamHoldingOpponentFlag())
-	  findHomeBase(myteam, goalPos);
+  // added by tdorn
+  // most important is that we have own flag
+  if (!myTeamHoldingOwnFlag()) {
+    findMyFlag(goalPos);
+  }
+  else if (myTeamHoldingOpponentFlag())
+    // end
+    findHomeBase(myteam, goalPos);
+  else if (isMyTeamFlag(1)) // dt doesn't do anything here, so we can pass a random number.
+    // in this case we want to follow the team but not go into the base.
+    // TODO: make this work
+    doNothing(1);
   else
-	  findOpponentFlag(goalPos);
+  	  findOpponentFlag(goalPos);
+
   AStarNode goalNode(goalPos);
   if (!paths.empty() && goalNode == pathGoalNode)
 	  return; // same goal so no need to plan again
@@ -1163,6 +1177,70 @@ std::vector<double>* RobotPlayer::costVector(int x, int y)
   return costVector;
 }
 /* end of lines added by David Chin */
+
+// tdorn lines
+// returns true if your team is holding your own flags
+bool		RobotPlayer::myTeamHoldingOwnFlag(void)
+{
+  TeamColor myTeamColor = getTeam();
+  if (!World::getWorld()->allowTeamFlags()) return false;
+  for (int i = 0; i < numFlags; i++) {
+    Flag& flag = World::getWorld()->getFlag(i);
+    TeamColor flagTeamColor = flag.type->flagTeam;
+    if (flagTeamColor == myTeamColor && flag.status == FlagOnTank) {
+      PlayerId ownerId = flag.owner;
+#ifdef TRACE2
+      char buffer[128];
+      sprintf(buffer, "Looking for a Player with id=%d",
+        ownerId);
+      controlPanel->addMessage(buffer);
+#endif
+      Player* p = lookupLocalPlayer(ownerId);
+      if (p && (p->getTeam() == myTeamColor)) {
+#ifdef TRACE2
+        sprintf(buffer, "Player id=%d, TeamColor=%d holds flag %d, robots[0]=%d",
+          p->getId(), p->getTeam(), myTeamColor, robots[0]->getId());
+        controlPanel->addMessage(buffer);
+#endif
+        return true;
+      }
+    }
+  }
+#ifdef TRACE2
+  char buffer[128];
+  sprintf(buffer, "Robot(%d)'s team is not holding a team flag",
+    getId());
+  controlPanel->addMessage(buffer);
+#endif
+  return false;
+}
+
+/*
+ * Find team flag and return its location
+ */
+void		RobotPlayer::findMyFlag(float location[3])
+{
+  TeamColor myTeamColor = getTeam();
+  if (!World::getWorld()->allowTeamFlags()) return;
+  for (int i = 0; i < numFlags; i++) {
+    Flag& flag = World::getWorld()->getFlag(i);
+    TeamColor flagTeamColor = flag.type->flagTeam;
+    if (flagTeamColor != NoTeam && flagTeamColor == myTeamColor) {
+      location[0] = flag.position[0];
+      location[1] = flag.position[1];
+      location[2] = flag.position[2];
+#ifdef TRACE2
+      char buffer[128];
+      sprintf(buffer, "Robot(%d) found a flag at (%f, %f, %f)",
+        getId(), location[0], location[1], location[2]);
+      controlPanel->addMessage(buffer);
+#endif
+      return;
+    }
+  }
+}
+
+//end
 
 // Local Variables: ***
 // mode: C++ ***
