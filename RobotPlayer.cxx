@@ -644,11 +644,12 @@ void			RobotPlayer::setTarget(const Player* _target)
   TeamColor myteam = getTeam();
   float goalPos[3] = { 0, 0, 0 };
   // added by tdorn
-  myTeamHoldingOwnFlag();
   // most important is that we have own flag
-  if (!myTeamHoldingOwnFlag()) {
-    findMyFlag(goalPos);
+  if (!myTeamHoldingOwnFlag() && isMyTeamFlag(1)) {
+    findHomeBase(myteam, goalPos);
   }
+  else if (!myTeamHoldingOwnFlag())
+    findMyFlag(goalPos);
   else if (myTeamHoldingOpponentFlag())
     findHomeBase(myteam, goalPos);
   else
