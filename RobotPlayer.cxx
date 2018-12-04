@@ -642,13 +642,14 @@ void			RobotPlayer::setTarget(const Player* _target)
   //if (!target) return;
 
   TeamColor myteam = getTeam();
-  float goalPos[3];
+  float goalPos[3] = { 0, 0, 0 };
   // added by tdorn
+  myTeamHoldingOwnFlag();
   // most important is that we have own flag
   if (!myTeamHoldingOwnFlag()) {
     findMyFlag(goalPos);
   }
-  else if (myTeamHoldingOpponentFlag() && !isMyTeamFlag(1))
+  else if (myTeamHoldingOpponentFlag())
     findHomeBase(myteam, goalPos);
   else
     findOpponentFlag(goalPos, isMyTeamFlag(1));
@@ -1120,31 +1121,31 @@ void		RobotPlayer::findOpponentFlag(float location[3], bool hasFlag)
                       isInside[j] = true;
                     }
                   }
-                  //if (isInside[0] && isInside[1]) {
-                  //  #define BBASESIZE 1.0
-                  //  if (base[0] < 0 && base[1] == 0) {
-                  //    location[0] = flag.position[0] + (BBASESIZE * baseSize);
-                  //    location[1] = flag.position[1];
-                  //  }
-                  //  else if (base[0] > 0 && base[1] == 0) {
-                  //    location[0] = flag.position[0] - (BBASESIZE * baseSize);
-                  //    location[1] = flag.position[1];
-                  //  }
-                  //  else if (base[1] < 0 && base[0] == 0) {
-                  //    location[1] = flag.position[1] + (BBASESIZE * baseSize);
-                  //    location[0] = flag.position[0];
-                  //  }
-                  //  else if (base[1] > 0 && base[0] == 0) {
-                  //    location[1] = flag.position[1] - (BBASESIZE * baseSize);
-                  //    location[0] = flag.position[0];
-                  //  }
-                  //  else {
-                  //    location[0] = flag.position[0];
-                  //    location[1] = flag.position[1];
-                  //  }
-                  //  location[2] = flag.position[2];
-                  //  return;
-                  //}
+                  if (isInside[0] && isInside[1]) {
+                    #define BBASESIZE 1.0
+                    if (base[0] < 0 && base[1] == 0) {
+                      location[0] = flag.position[0] + (BBASESIZE * baseSize);
+                      location[1] = flag.position[1];
+                    }
+                    else if (base[0] > 0 && base[1] == 0) {
+                      location[0] = flag.position[0] - (BBASESIZE * baseSize);
+                      location[1] = flag.position[1];
+                    }
+                    else if (base[1] < 0 && base[0] == 0) {
+                      location[1] = flag.position[1] + (BBASESIZE * baseSize);
+                      location[0] = flag.position[0];
+                    }
+                    else if (base[1] > 0 && base[0] == 0) {
+                      location[1] = flag.position[1] - (BBASESIZE * baseSize);
+                      location[0] = flag.position[0];
+                    }
+                    else {
+                      location[0] = flag.position[0];
+                      location[1] = flag.position[1];
+                    }
+                    location[2] = flag.position[2];
+                    return;
+                  }
                   location[0] = flag.position[0];
                   location[1] = flag.position[1];
                   location[2] = flag.position[2];
@@ -1240,31 +1241,19 @@ bool		RobotPlayer::myTeamHoldingOwnFlag(void)
   for (int i = 0; i < numFlags; i++) {
     Flag& flag = World::getWorld()->getFlag(i);
     TeamColor flagTeamColor = flag.type->flagTeam;
-    if (flagTeamColor == myTeamColor && flag.status == FlagOnTank) {
+    if (flagTeamColor != NoTeam && flagTeamColor == myTeamColor && flag.status == FlagOnTank) {
       PlayerId ownerId = flag.owner;
-#ifdef TRACE2
-      char buffer[128];
-      sprintf(buffer, "Looking for a Player with id=%d",
-        ownerId);
-      controlPanel->addMessage(buffer);
-#endif
       Player* p = lookupLocalPlayer(ownerId);
+      TeamColor color = p->getTeam();
       if (p && (p->getTeam() == myTeamColor)) {
-#ifdef TRACE2
-        sprintf(buffer, "Player id=%d, TeamColor=%d holds flag %d, robots[0]=%d",
-          p->getId(), p->getTeam(), myTeamColor, robots[0]->getId());
-        controlPanel->addMessage(buffer);
-#endif
+        //char buffer[128];
+        //sprintf(buffer, "Player id=%d, TeamColor=%d holds flag %d, robots[0]=%d",
+        //  p->getId(), p->getTeam(), myTeamColor, robots[0]->getId());
+        //controlPanel->addMessage(buffer);
         return true;
       }
     }
   }
-#ifdef TRACE2
-  char buffer[128];
-  sprintf(buffer, "Robot(%d)'s team is not holding a team flag",
-    getId());
-  controlPanel->addMessage(buffer);
-#endif
   return false;
 }
 
@@ -1278,7 +1267,7 @@ void		RobotPlayer::findMyFlag(float location[3])
   for (int i = 0; i < numFlags; i++) {
     Flag& flag = World::getWorld()->getFlag(i);
     TeamColor flagTeamColor = flag.type->flagTeam;
-    if (flagTeamColor == myTeamColor) {
+    if (flagTeamColor != NoTeam && flagTeamColor == myTeamColor) {
       location[0] = flag.position[0];
       location[1] = flag.position[1];
       location[2] = flag.position[2];
@@ -1291,6 +1280,11 @@ void		RobotPlayer::findMyFlag(float location[3])
       return;
     }
   }
+  // probably not going to happen, but i wonder if this will fix the weird issues
+  location[0] = 0;
+  location[1] = 0;
+  location[2] = 0;
+  return;
 }
 
 //end
