@@ -92,7 +92,9 @@ class RobotPlayer : public LocalPlayer {
 /* lines added by David Chin */
      void		findHomeBase(TeamColor teamColor, float location[3]);
      bool		myTeamHoldingOpponentFlag(void);
-     void		findOpponentFlag(float location[3]);
+     // modified tdorn
+     void		RobotPlayer::findOpponentFlag(float location[3], bool hasFlag);
+     // end
      int		computeCenterOfMass(float neighborhoodSize, float cmOut[3]);
      int		computeRepulsion(float neighborhoodSize, float repulseOut[3]);
      int		computeAlign(float neighborhoodSize, float avVOut[3], float* avAzimuthOut);

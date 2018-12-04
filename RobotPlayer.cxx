@@ -651,12 +651,8 @@ void			RobotPlayer::setTarget(const Player* _target)
   else if (myTeamHoldingOpponentFlag())
     // end
     findHomeBase(myteam, goalPos);
-  else if (isMyTeamFlag(1)) // dt doesn't do anything here, so we can pass a random number.
-    // in this case we want to follow the team but not go into the base.
-    // TODO: make this work
-    doNothing(1);
   else
-  	  findOpponentFlag(goalPos);
+    findOpponentFlag(goalPos, isMyTeamFlag(1));
 
   AStarNode goalNode(goalPos);
   if (!paths.empty() && goalNode == pathGoalNode)
@@ -1091,14 +1087,66 @@ bool		RobotPlayer::myTeamHoldingOpponentFlag(void)
 /*
  * Find any opponent flag and return its location
  */
-void		RobotPlayer::findOpponentFlag(float location[3])
+// modified by tdorn
+void		RobotPlayer::findOpponentFlag(float location[3], bool hasFlag)
 {
 	TeamColor myTeamColor = getTeam();
 	if (!World::getWorld()->allowTeamFlags()) return;
 	for (int i = 0; i < numFlags; i++) {
 		Flag& flag = World::getWorld()->getFlag(i);
 		TeamColor flagTeamColor = flag.type->flagTeam;
-		if (flagTeamColor != NoTeam && flagTeamColor != myTeamColor) {
+
+                if (flagTeamColor != NoTeam && flagTeamColor != myTeamColor && hasFlag) {
+                  World* world = World::getWorld();
+                  if (!World::getWorld()->allowTeamFlags()) return;
+
+
+                  float baseSize = BZDB.eval(StateDatabase::BZDB_BASESIZE);
+                  // you need the zero. I don't know why, but you do.
+                  const float* baseOld = world->getBase(flagTeamColor, 0);
+                  
+                  float base[] = { baseOld[0], baseOld[1] };
+                  bool isInside[] = { false, false };
+                  for (int j = 0; j < 2; j++) {
+                    // calculate the distance between the left and right side
+                    float totalDistance = hypotf(base[j] + baseSize, base[j] - baseSize);
+                    float leftSide = hypotf(base[j] + baseSize, flag.position[j]);
+                    float rightSide = hypotf(base[j] - baseSize, flag.position[j]);
+
+                    // if this is small or 0, the point is inside the square for x or y
+                    float delta = totalDistance - (leftSide + rightSide);
+
+                    if (delta < 1) {
+                      isInside[j] = true;
+                    }
+                  }
+                  if (isInside[0] && isInside[1]) {
+                    #define BBASESIZE 1.0
+                    if (base[0] < 0 && base[1] == 0) {
+                      location[0] = flag.position[0] + (BBASESIZE * baseSize);
+                      location[1] = flag.position[1];
+                    }
+                    else if (base[0] > 0 && base[1] == 0) {
+                      location[0] = flag.position[0] - (BBASESIZE * baseSize);
+                      location[1] = flag.position[1];
+                    }
+                    else if (base[1] < 0 && base[0] == 0) {
+                      location[1] = flag.position[1] + (BBASESIZE * baseSize);
+                      location[0] = flag.position[0];
+                    }
+                    else if (base[1] > 0 && base[0] == 0) {
+                      location[1] = flag.position[1] - (BBASESIZE * baseSize);
+                      location[0] = flag.position[0];
+                    }
+                    location[2] = flag.position[2];
+                    return;
+                  }
+                  location[0] = flag.position[0];
+                  location[1] = flag.position[1];
+                  location[2] = flag.position[2];
+                  return;
+                }
+		else if (flagTeamColor != NoTeam && flagTeamColor != myTeamColor) {
 			location[0] = flag.position[0];
 			location[1] = flag.position[1];
 			location[2] = flag.position[2];
@@ -1112,6 +1160,7 @@ void		RobotPlayer::findOpponentFlag(float location[3])
 		}
 	}
 }
+// end tdorn modify
 
 /*
  * Compute a random wander angle between -0.05 and 0.05
@@ -1225,7 +1274,7 @@ void		RobotPlayer::findMyFlag(float location[3])
   for (int i = 0; i < numFlags; i++) {
     Flag& flag = World::getWorld()->getFlag(i);
     TeamColor flagTeamColor = flag.type->flagTeam;
-    if (flagTeamColor != NoTeam && flagTeamColor == myTeamColor) {
+    if (flagTeamColor == myTeamColor) {
       location[0] = flag.position[0];
       location[1] = flag.position[1];
       location[2] = flag.position[2];
