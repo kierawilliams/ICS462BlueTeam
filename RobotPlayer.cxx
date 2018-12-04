@@ -648,11 +648,11 @@ void			RobotPlayer::setTarget(const Player* _target)
   if (!myTeamHoldingOwnFlag()) {
     findMyFlag(goalPos);
   }
-  else if (myTeamHoldingOpponentFlag())
-    // end
+  else if (myTeamHoldingOpponentFlag() && !isMyTeamFlag(1))
     findHomeBase(myteam, goalPos);
   else
     findOpponentFlag(goalPos, isMyTeamFlag(1));
+    // end
 
   AStarNode goalNode(goalPos);
   if (!paths.empty() && goalNode == pathGoalNode)
@@ -1120,27 +1120,31 @@ void		RobotPlayer::findOpponentFlag(float location[3], bool hasFlag)
                       isInside[j] = true;
                     }
                   }
-                  if (isInside[0] && isInside[1]) {
-                    #define BBASESIZE 1.0
-                    if (base[0] < 0 && base[1] == 0) {
-                      location[0] = flag.position[0] + (BBASESIZE * baseSize);
-                      location[1] = flag.position[1];
-                    }
-                    else if (base[0] > 0 && base[1] == 0) {
-                      location[0] = flag.position[0] - (BBASESIZE * baseSize);
-                      location[1] = flag.position[1];
-                    }
-                    else if (base[1] < 0 && base[0] == 0) {
-                      location[1] = flag.position[1] + (BBASESIZE * baseSize);
-                      location[0] = flag.position[0];
-                    }
-                    else if (base[1] > 0 && base[0] == 0) {
-                      location[1] = flag.position[1] - (BBASESIZE * baseSize);
-                      location[0] = flag.position[0];
-                    }
-                    location[2] = flag.position[2];
-                    return;
-                  }
+                  //if (isInside[0] && isInside[1]) {
+                  //  #define BBASESIZE 1.0
+                  //  if (base[0] < 0 && base[1] == 0) {
+                  //    location[0] = flag.position[0] + (BBASESIZE * baseSize);
+                  //    location[1] = flag.position[1];
+                  //  }
+                  //  else if (base[0] > 0 && base[1] == 0) {
+                  //    location[0] = flag.position[0] - (BBASESIZE * baseSize);
+                  //    location[1] = flag.position[1];
+                  //  }
+                  //  else if (base[1] < 0 && base[0] == 0) {
+                  //    location[1] = flag.position[1] + (BBASESIZE * baseSize);
+                  //    location[0] = flag.position[0];
+                  //  }
+                  //  else if (base[1] > 0 && base[0] == 0) {
+                  //    location[1] = flag.position[1] - (BBASESIZE * baseSize);
+                  //    location[0] = flag.position[0];
+                  //  }
+                  //  else {
+                  //    location[0] = flag.position[0];
+                  //    location[1] = flag.position[1];
+                  //  }
+                  //  location[2] = flag.position[2];
+                  //  return;
+                  //}
                   location[0] = flag.position[0];
                   location[1] = flag.position[1];
                   location[2] = flag.position[2];
